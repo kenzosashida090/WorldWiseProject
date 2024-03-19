@@ -3,7 +3,7 @@
 
 // 1) Create a context
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useReducer,  } from "react";
 
 const BASE_URL = "http://localhost:9000/cities"
 
@@ -49,22 +49,70 @@ const CityContext = createContext<CityContextType>({
   createCity: ()=>null ,
   deleteCity: ()=>null ,
 }) 
+type TypeInitialState ={
+  cities:[]
+  isLoading:boolean,
+  currentCity:CityData,
+  error:string
+}
+
+type TypeAction ={
+  type:"loading" | "cities/loaded" | "city/loaded"| "city/created" | "city/deleted" | "error" ,
+  payload?:CityData []|CityData | ""
+  
+}
+const initialState:TypeInitialState = {
+  cities:[],
+  isLoading: false,
+  currentCity:{
+  cityName: "",
+  country: "",
+  emoji: "",
+  date: "",
+  notes: "",
+  position: {
+    lat: 0,
+    lng: 0
+  },
+  id: ""},
+  error:""
+}
+function reducer (state:TypeInitialState,action:TypeAction) {
+  switch(action.type){
+    case "loading":
+      return{...state, isLoading:true}
+
+    case "cities/loaded":
+      return{...state, isLoading:false, cities:action.payload}
+
+    case "city/loaded":
+      return{...state,isLoading:false, currentCity: action.payload  }
+
+    case "city/created":
+      return{...state,isLoading:false, cities:[...state.cities,  action.payload], currentCity: action.payload}
+    case "city/deleted":
+      return{...state,isLoading:false, cities:[state.cities.filter((city:CityData)=>city.id !== action.payload)]}  
+    case "error":
+      return{...state,isLoading:false, error:action.payload }
+    }
+}
 function CityProvider ({children}:Props) {
-    const [cities, setCities] = useState([])
-    const [isLoading, setLoading] = useState(false)
-    const [currentCity, setCurrentCity] = useState<CityData>({})
+  
+    // const [cities, setCities] = useState([])
+    // const [isLoading, setLoading] = useState(false)
+    // const [currentCity, setCurrentCity] = useState<CityData>({})
+    const [{cities,isLoading,currentCity}, dispatch]=useReducer(reducer,initialState)
+
     useEffect(()=> {
     
         async function fetchData() {
+          dispatch({type:"loading"})
           try{
-            setLoading(true)
             const res = await  fetch(`${BASE_URL}`)
             const data = await res.json()
-            setCities(data)
+            dispatch({type:"cities/loaded", payload:data })
           }catch (err) {
-            console.log("Error", err)
-          }finally{
-            setLoading(false)
+           dispatch({type:"error", payload: err.message})
           }
   
         }
@@ -72,20 +120,21 @@ function CityProvider ({children}:Props) {
       
     },[])
     async function getCity (id:string){
+      if(id === currentCity.id) return
+      dispatch({type:"loading"})
       try{
-        setLoading(true)
+
         const res = await fetch(`${BASE_URL}/${id}`)
         const data = await res.json()
         
-        setCurrentCity(data)
+        dispatch({type:"city/loaded", payload:data })
       }catch (err){
-        console.log("error",err);
-      }finally{
-        setLoading(false)
+        dispatch({type:"error", payload: err.message})
       }
     }
 
     async function createCity(newCity:CityData) {
+      dispatch({type:"loading"})
       try{
         const res = await fetch(`${BASE_URL}`,{
           method:"POST",
@@ -95,25 +144,22 @@ function CityProvider ({children}:Props) {
           }
         })
         const data = await res.json()
-        setCities((prevCities) => [...prevCities, data])
+        dispatch({type:"city/created",payload:data})
       }catch(err){
-        alert('Failed to add city')
-      }finally{
-        setLoading(false)
+        dispatch({type:"error", payload: err.message})
       }
     }
     async function deleteCity(id:string) {
+      dispatch({type:"loading"})
       try{
-        setLoading(true)
+        
         await fetch(`${BASE_URL}/${id}`,{
           method:"DELETE"
         })
      
-        setCities((cities)=> cities.filter((citie:CityData) => id != citie.id))
+        dispatch({type:"city/deleted",payload:id})
       }catch(err){
-        alert('Failed to delete city');
-      }finally{
-        setLoading(false)
+        dispatch({type:"error", payload: err.message})
       }
       
     }
