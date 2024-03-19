@@ -24,7 +24,7 @@ function City() {
  
   useEffect(()=>{
     getCity(id)
-  },[id])
+  },[id,getCity])
 
 
   //THE FIRST RULE OF HOOKS WE NEED TO CREATE ALL OF THEM

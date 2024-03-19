@@ -3,7 +3,7 @@
 
 // 1) Create a context
 
-import { createContext, useContext, useEffect, useReducer,  } from "react";
+import { createContext, useCallback, useContext, useEffect, useReducer,  } from "react";
 
 const BASE_URL = "http://localhost:9000/cities"
 
@@ -119,7 +119,7 @@ function CityProvider ({children}:Props) {
         fetchData()
       
     },[])
-    async function getCity (id:string){
+  const getCity = useCallback(  async function getCity (id:string){
       if(id === currentCity.id) return
       dispatch({type:"loading"})
       try{
@@ -131,7 +131,7 @@ function CityProvider ({children}:Props) {
       }catch (err){
         dispatch({type:"error", payload: err.message})
       }
-    }
+    },[currentCity.id])
 
     async function createCity(newCity:CityData) {
       dispatch({type:"loading"})
