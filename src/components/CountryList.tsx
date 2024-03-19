@@ -1,7 +1,7 @@
-import { useCity } from '../store/CityContext'
+import { useCity } from '../contexts/CityContext'
 import styles from './CountryList.module.css'
 import Message from './Message'
-import { CityData } from '../store/CityContext'
+import { CityData } from '../contexts/CityContext'
 
 import CountryItem from './CountryItem'
 

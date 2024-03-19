@@ -1,7 +1,7 @@
-import { useCity } from '../store/CityContext'
+import { useCity } from '../contexts/CityContext'
 import CityItem from './CityItem'
 import styles from './CityList.module.css'
-import { CityData } from '../store/CityContext'
+import { CityData } from '../contexts/CityContext'
 import Message from './Message'
 function CityList() {
 

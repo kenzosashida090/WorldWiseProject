@@ -20,15 +20,35 @@ export interface CityData {
     lat: number,
     lng: number
   },
-  id: number
+  id: string
 }
 export type  CityContextType = {
   cities : CityData[],
   isLoading: boolean,
   currentCity:CityData,
-  getCity: (id:number)=>void ,
+  getCity: (id:string)=>void ,
+  createCity: (newCity:CityData)=>void,
+  deleteCity: (id:string)=>void,
 }
-const CityContext = createContext<CityContextType | null>(null) 
+const CityContext = createContext<CityContextType>({
+  cities : [],
+  isLoading: false,
+  currentCity:{
+    cityName: "",
+    country: "",
+    emoji: "",
+    date: "",
+    notes: "",
+    position: {
+      lat: 0,
+      lng: 0
+    },
+    id: "string"
+  },
+  getCity: ()=>null ,
+  createCity: ()=>null ,
+  deleteCity: ()=>null ,
+}) 
 function CityProvider ({children}:Props) {
     const [cities, setCities] = useState([])
     const [isLoading, setLoading] = useState(false)
@@ -51,24 +71,60 @@ function CityProvider ({children}:Props) {
         fetchData()
       
     },[])
-    async function getCity (id:number){
+    async function getCity (id:string){
       try{
         setLoading(true)
         const res = await fetch(`${BASE_URL}/${id}`)
         const data = await res.json()
+        
         setCurrentCity(data)
       }catch (err){
-        console.log(err);
+        console.log("error",err);
       }finally{
         setLoading(false)
       }
+    }
+
+    async function createCity(newCity:CityData) {
+      try{
+        const res = await fetch(`${BASE_URL}`,{
+          method:"POST",
+          body:JSON.stringify(newCity),
+          headers:{
+            "Content-Type":"application/json"
+          }
+        })
+        const data = await res.json()
+        setCities((prevCities) => [...prevCities, data])
+      }catch(err){
+        alert('Failed to add city')
+      }finally{
+        setLoading(false)
+      }
+    }
+    async function deleteCity(id:string) {
+      try{
+        setLoading(true)
+        await fetch(`${BASE_URL}/${id}`,{
+          method:"DELETE"
+        })
+     
+        setCities((cities)=> cities.filter((citie:CityData) => id != citie.id))
+      }catch(err){
+        alert('Failed to delete city');
+      }finally{
+        setLoading(false)
+      }
+      
     }
     return (
        <CityContext.Provider value={{
         cities ,
         isLoading,
         currentCity,
-        getCity
+        getCity,
+        createCity,
+        deleteCity
     }}>
     {children}
     </CityContext.Provider>
@@ -81,4 +137,6 @@ function useCity (): CityContextType | null{
   if(context === undefined) throw new Error("useCity must be used within the CityProvider")
   return context
 }
+
+
 export { CityProvider, useCity} 

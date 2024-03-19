@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./City.module.css";
-import { useCity } from "../store/CityContext";
+import { useCity } from "../contexts/CityContext";
 import { useEffect } from "react";
 import Button from "./Button";
 import Spinner from "./Spinner";
@@ -21,11 +21,11 @@ function City() {
   const {id} = useParams()
   const {currentCity, getCity, isLoading} = useCity()
   const {emoji,cityName, date,notes} = currentCity
-  console.log(currentCity)
+ 
   useEffect(()=>{
     getCity(id)
   },[id])
-  const navigate = useNavigate()
+
 
   //THE FIRST RULE OF HOOKS WE NEED TO CREATE ALL OF THEM
   //IF WE WANT TO RETURN SOMETHING WE SET THIS AT THE END OF ALL HOOKS CREATED
@@ -36,7 +36,7 @@ function City() {
       <div className={styles.row}>
         <h6>City name</h6>
         <h3>
-          <span>{emoji}</span> {cityName}
+          {cityName}
         </h3>
       </div>
 
